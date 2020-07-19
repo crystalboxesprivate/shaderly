@@ -1,0 +1,35 @@
+<script>
+  // This will prevent the double tap zoom gesture
+  var lastTouchEnd = 0
+  document.addEventListener(
+    'touchend',
+    function (event) {
+      var now = new Date().getTime()
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault()
+      }
+      lastTouchEnd = now
+    },
+    false
+  )
+
+  registerClike()
+
+  const editor = CodeMirror(document.querySelector('#my-div'), {
+    lineNumbers: true,
+    tabSize: 2,
+    value: `$$SHADERCODE$$`,
+    mode: 'x-shader/x-fragment'
+  })
+
+  editor.on('changes', () => {
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: 'value_changed',
+      textValue: editor.getValue()
+    }));
+  });
+
+
+
+
+</script>
