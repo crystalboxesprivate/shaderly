@@ -19,13 +19,13 @@ import {
 
 function Shaderly() {
   useEffect(() => {
-    StatusBar.setHidden(true, 'slide')
+    StatusBar.setHidden(true)
     overlayLog('initialized')
   }, [])
   return (
     <View>
       <ShaderView />
-      <CodePanel initialSource={getShaderSource(ShaderStageType.Fragment, 0)} />
+      <CodePanel />
       <DebugOverlay />
     </View>
   )

@@ -3,11 +3,17 @@ import React, { useState, useRef, useEffect } from 'react'
 import { View, StyleSheet, Text, Dimensions } from 'react-native'
 import { useEditorSource } from './source-loading'
 import { overlayLog } from '../utils/DebugOverlay'
+import { useSelector, useDispatch } from 'react-redux'
+import { ShaderlyState } from '../state'
+import { ShaderStageType } from '../state/project/types'
+import { EditorActions } from '../state/editor'
+import { KeyboardAccessoryView } from 'react-native-keyboard-accessory'
 
-function ErrorDispay({ messages }: { messages?: string[] }) {
-  return !messages ? null : (
+function ErrorDispay() {
+  const errors = useSelector((state: ShaderlyState) => state.editor.errors)
+  return errors.length == 0 ? null : (
     <View style={styles.errorDisplay}>
-      {messages.map((x: string, i: number) => (
+      {errors.map((x: string, i: number) => (
         <Text key={`item:${i}`} style={styles.errorDisplayText}>
           {x}
         </Text>
@@ -21,7 +27,17 @@ type WebViewMessage = {
   textValue?: string
 }
 
-export function CodePanel({ initialSource }: { initialSource: string }) {
+export function CodePanel() {
+  const initialSource = useSelector((state: ShaderlyState) =>
+    state.project.currentStage === ShaderStageType.Vertex
+      ? state.project.passes[state.project.currentPass].shaderStages.vertex
+          .source
+      : state.project.passes[state.project.currentPass].shaderStages.fragment
+          .source
+  )
+
+  const dispatch = useDispatch()
+
   const [currentShaderSource, setCurrentShaderSource] = useState(initialSource)
   const source = useEditorSource(initialSource)
   const webView: React.MutableRefObject<WebView | null> = useRef(null)
@@ -37,6 +53,7 @@ export function CodePanel({ initialSource }: { initialSource: string }) {
 
   useEffect(() => {
     overlayLog('pending one shader compilation...')
+    dispatch(EditorActions.setSource(currentShaderSource))
   }, [currentShaderSource])
 
   return (
@@ -49,6 +66,9 @@ export function CodePanel({ initialSource }: { initialSource: string }) {
         source={{ html: source }}
       />
       <ErrorDispay />
+
+      {/*<KeyboardAccessoryView alwaysVisible={true}>
+  </KeyboardAccessoryView>*/}
     </View>
   )
 }
@@ -57,18 +77,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent: 'center',
   },
   codePanel: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height,
+    // position: 'absolute',
+    // top: 0,
+    // left: 0,
+    // width: Dimensions.get('window').width,
+    // height: Dimensions.get('window').height,
+    width: '100%',
+    height: '100%',
     backgroundColor: 'rgba(255,255,255,0.0)',
-    flex: 1,
   },
   webView: {
+    alignSelf: 'auto',
     backgroundColor: 'rgba(255,255,255,0.0)',
   },
   errorDisplay: {

@@ -119,7 +119,17 @@ export function setupRendererState(store: Store<ShaderlyState>) {
       if (state.editor.source != src) {
         const errors: string[] = []
         const newShaderState = makeShaderProgram(newVertSrc, newFragSrc, errors)
+        if (dispatch) dispatch(EditorActions.setErrors(errors))
+        if (newShaderState.shader == null) {
+          return
+        }
         console.log('setting shader state')
+
+        const gl = getGL()
+        gl.deleteShader(shState.vert)
+        gl.deleteShader(shState.frag)
+        if (shState.shader) gl.deleteProgram(shState.shader?.program)
+
         shaderStates.set(currentPass, newShaderState)
         if (dispatch)
           dispatch(
